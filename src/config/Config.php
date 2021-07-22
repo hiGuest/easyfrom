@@ -15,7 +15,8 @@ return [
             'username' => 'root',
             'password' => 'yuii787..',
             'dbname' => 'bpmn',
-            'charset' => 'utf8'
+            'charset' => 'utf8',
+            'prefix'=>'zt_'
         ]
     ]
 ];

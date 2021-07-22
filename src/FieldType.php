@@ -12,8 +12,16 @@ namespace Guest\EasyFrom;
 
 class FieldType {
 
-    public function text() {
+    public function name() {
+        return $this->fieldName();
+    }
+
+    public function content() {
         return $this->fieldVarchar();
+    }
+
+    public function text() {
+        return $this->fieldText();
     }
 
     public function number() {
@@ -109,6 +117,15 @@ class FieldType {
     }
 
     protected function fieldVarchar($len = 250) {
+        return [
+            'type' => 'varchar',
+            'len' => $len,
+            'decimal' => 0,
+            'default' => ''
+        ];
+    }
+
+    protected function fieldName($len = 60) {
         return [
             'type' => 'varchar',
             'len' => $len,

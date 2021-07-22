@@ -14,7 +14,7 @@ use phpDocumentor\Reflection\Types\False_;
 
 class Alter
 {
-    public $prefix = 'zt_ext';
+    public $prefix = '';
 
     /**
      * @title 创建表
@@ -28,7 +28,7 @@ class Alter
      */
     public function creatTable($table_name,$comment,$charset='utf8mb4',$increment='999'){
         //TODO
-        $table_name = $this->prefix.'_'.$table_name;
+        $table_name = $this->prefix.$table_name;
         $sql =           <<<here
                 CREATE TABLE `$table_name` (
                     `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
@@ -65,7 +65,12 @@ here;
     public function findTable($table_names){
         $sql = "select * from information_schema.tables where table_name ='{$table_names}';";
         $db = EasyDb::init();
-        return $db->execSql($sql);
+        $res = $db->queryOne($sql);
+        if(empty($res)){
+            return false;
+        }else{
+            return true;
+        }
     }
 
     /**

@@ -74,7 +74,7 @@ class alter extends TestCase
 
     /**
      * @test
-     * @title 编辑字段
+     * @title 字段是否设置
      * @author hexu
      * @date 2021/7/18 4:57 下午
      */
@@ -94,6 +94,54 @@ class alter extends TestCase
         $this->assertThat($res, $this->isTrue());
     }
 
+    /**
+     * @test
+     * @title 完整表实例
+     * @author hexu
+     * @date 2021/7/19 3:57 下午
+     */
+    public function fullTable(){
+        $fromModel = new \Guest\EasyFrom\FromSet();
+        $res = $fromModel->creatTables('th_show','测试表啊');
+        $this->assertThat($res, $this->equalTo(1));
+    }
+
+    /**
+     * @test
+     * @title 添加表
+     * @author hexu
+     * @date 2021/7/19 5:11 下午
+     */
+    public function fullAddField(){
+        $fromModel = new \Guest\EasyFrom\FromSet();
+        $param = array(
+            [
+                'id'=>74,
+                'name'=>'user_names',
+                'type'=>'name',
+                'desc'=>'用户名'
+            ],
+            [
+                'id'=>75,
+                'name'=>'user_ids',
+                'type'=>'number',
+                'desc'=>'用户ID'
+            ],
+            [
+                'id'=>76,
+                'name'=>'sexs',
+                'type'=>'number',
+                'desc'=>'性别'
+            ],
+            [
+                'name'=>'time',
+                'type'=>'number',
+                'desc'=>'时间'
+            ],
+        );
+        $result = $fromModel->saveField(32,$param);
+        $this->assertThat($result, $this->isTrue());
+    }
 
 
 
