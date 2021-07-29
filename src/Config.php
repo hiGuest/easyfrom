@@ -17,6 +17,8 @@ class Config
      * @var
      */
     public static $instance;
+
+    public static $configPath;
     /**
      * 配置参数
      * @var array
@@ -51,7 +53,11 @@ class Config
      * @date 2021/6/10 11:38 上午
      */
     public function loader(){
-        $configPath = __DIR__."/config/";
+        if(empty(self::$configPath)){
+            $configPath = __DIR__."/config/";
+        }else{
+            $configPath = self::$configPath;
+        }
         $files = glob($configPath . '*' . $this->configExt);
         foreach ($files as $file) {
             $this->load($file, pathinfo($file, PATHINFO_FILENAME));
