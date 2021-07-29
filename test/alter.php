@@ -143,7 +143,17 @@ class alter extends TestCase
         $this->assertThat($result, $this->isTrue());
     }
 
-
+    /**
+     * @test
+     * @title 修改表名
+     * @author hexu
+     * @date 2021/7/23 2:04 下午
+     */
+    public function renameTable(){
+        $fromModel = new \Guest\EasyFrom\FromSet();
+        $result = $fromModel->renameTable('zt_ext_apply2','zt_ext_apply2');
+        $this->assertThat($result, $this->isTrue());
+    }
 
 
 }

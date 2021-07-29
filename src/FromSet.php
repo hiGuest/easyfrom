@@ -12,6 +12,13 @@ namespace Guest\EasyFrom;
 
 class FromSet extends Alter
 {
+    public $prefix;
+
+    public function __construct()
+    {
+        $this->prefix = \Guest\EasyFrom\Config::Init()->get('Config.database.mysql.prefix');
+    }
+
     /**
      * @title 创建表
      * @param $table_name
@@ -30,15 +37,14 @@ class FromSet extends Alter
         // 检查库表是否存在
         $isSet = $this->issetTable($table_name);
         if($isSet)throw new EasyDbException('表已经存在',10021);
-        $prefix = \Guest\EasyFrom\Config::Init()->get('Config.database.mysql.prefix');
-        $taName = $prefix.'from';
+        $taName = $this->prefix.'from';
         $sql = "
             SELECT * FROM {$taName} where table_name = :table_name
         ";
         $isSets = $db->queryOne($sql,['table_name'=>$table_name]);
         if($isSets)throw new EasyDbException('表已经存在',10022);
 
-        $addRes = parent::creatTable($table_name, $comment, $charset, $increment);
+        $addRes = parent::creatTable($this->prefix.$table_name, $comment, $charset, $increment);
         if($addRes){
             $config = is_array($config) ? json_encode($config) : $config;
             $data = array(
@@ -56,6 +62,32 @@ class FromSet extends Alter
     }
 
     /**
+     * @title 保存表数据
+     * @param $table_id
+     * @param $table_name
+     * @param $comment
+     * @param string $config
+     * @param string $uid
+     * @return bool
+     * @author hexu
+     * @date 2021/7/23 11:35 上午
+     */
+    public function saveTable($table_id, $table_name, $comment, $config='', $uid=''): bool
+    {
+        $db = EasyDb::init();
+        $taName = $this->prefix.'from';
+        $config = is_array($config) ? json_encode($config) : $config;
+        $data = array(
+            'from_name'=>$comment,
+            'table_name'=>$table_name,
+            'user_id'=>$uid,
+            'config'=>$config,
+            'update_time'=>time(),
+        );
+        return $db->update($taName,$data,array('id'=>$table_id));
+    }
+
+    /**
      * @title 保存字段
      * @param $table_id
      * @param $param array id/name:名称/type:类型/desc:描述
@@ -67,14 +99,13 @@ class FromSet extends Alter
     public function saveField($table_id,array $param, $user_id=''): bool
     {
         $db = EasyDb::init();
-        $prefix = \Guest\EasyFrom\Config::Init()->get('Config.database.mysql.prefix');
-        $taName = $prefix.'from';
+        $taName = $this->prefix.'from';
         $sql = "
             SELECT * FROM {$taName} where id = :id and status = :status
         ";
         $tableInfo = $db->queryOne($sql,['id'=>$table_id,'status'=>0]);
         if(!$tableInfo)throw new EasyDbException('表不存在',404);
-        $taFName = $prefix.'from_field';
+        $taFName = $this->prefix.'from_field';
 
         //更新状态
         $notIn = implode(',',array_column($param,'id'));
@@ -88,9 +119,9 @@ class FromSet extends Alter
 //                ['from_id'=>$table_id, 'field_name'=>$temp['name'], 'status'=>0]);
             if(empty($temp['id'])){
                 // 表是否有该字段
-                $issetField = $this->issetField($tableInfo['table_name'],$temp['name']);
+                $issetField = $this->issetField($this->prefix.$tableInfo['table_name'],$temp['name']);
                 if(!$issetField){
-                    $addRes = $this->addField($tableInfo['table_name'],$temp['name'],$temp['type'],$temp['desc']);
+                    $addRes = $this->addField($this->prefix.$tableInfo['table_name'],$temp['name'],$temp['type'],$temp['desc']);
                 }else{
                     $addRes = true;
                 }
@@ -112,7 +143,7 @@ class FromSet extends Alter
                 ";
                 $fieldInfo = $db->queryOne($sql,['id'=>$temp['id'], 'status'=>0]);
                 if(empty($fieldInfo))throw new EasyDbException('表字段不存在',404);
-                $editRes = $this->editField($tableInfo['table_name'],$fieldInfo['field_name'],$temp['name'],$temp['type'],$temp['desc']);
+                $editRes = $this->editField($this->prefix.$tableInfo['table_name'],$fieldInfo['field_name'],$temp['name'],$temp['type'],$temp['desc']);
                 $data = array(
                     'from_id'=>$table_id,
                     'field_name'=>$temp['name'],
@@ -127,6 +158,37 @@ class FromSet extends Alter
             }
         }
         return true;
+    }
+
+    /**
+     * @title 表单详情
+     * @param $table_id
+     * @return mixed
+     * @author hexu
+     * @date 2021/7/23 10:00 上午
+     */
+    public function tableInfo($table_id){
+        $taName = $this->prefix.'from';
+        $sql = "select * from {$taName} where id ='{$table_id}';";
+        $db = EasyDb::init();
+        return $db->queryOne($sql,['id'=>$table_id,'status'=>0]);
+    }
+
+    /**
+     * @title 获取表单字段记录信息
+     * @param $table_id
+     * @param $field_name
+     * @return mixed
+     * @author hexu
+     * @date 2021/7/23 2:31 下午
+     */
+    public function getField($table_id, $field_name){
+        $taFName = $this->prefix.'from_field';
+        $db = EasyDb::init();
+        $sql = "
+                    SELECT * FROM {$taFName} where from_id = :from_id and field_name = :field_name and status = :status
+                ";
+        return $db->queryOne($sql,['from_id'=>$table_id, 'field_name'=>$field_name,'status'=>0]);
     }
 
 }

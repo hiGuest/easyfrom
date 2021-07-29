@@ -20,17 +20,26 @@ class Index
     public function save(){
         $param = $this->getParam();
         try{
+            $db = EasyDb::init();
             $data = $this->verifyParam($param);
             // 创建表
             $fromModel = new \Guest\EasyFrom\FromSet();
+            $prefix = 'ext_';
             if(empty($param['table_id'])){
-                $prefix = 'zt_ext_';
                 $res = $fromModel->creatTables($prefix.$param['formModel'], $param['formRef'], $param);
                 if(!$res)throw new \Exception('表单创建失败','10000');
-                $db = EasyDb::init();
                 $table_id = $db->getLastId();
             }else{
                 $table_id = $param['table_id'];
+                //TODO 强制类型转换会可能出现报错，此处预检查
+                $tableInfo = $fromModel->tableInfo($table_id);
+                if(empty($tableInfo))throw new \Exception('原始表单不存在','404');
+                // 保存表数据
+                $res = $fromModel->saveTable($table_id,$prefix.$param['formModel'], $param['formRef'], $param);
+                if(!$res)throw new \Exception('表单保存失败','10000');
+                // 表名更新
+                $tableIsset = $fromModel->issetTable($fromModel->prefix.$prefix.$param['formModel']);
+                if(!$tableIsset)$fromModel->renameTable($fromModel->prefix.$tableInfo['table_name'],$fromModel->prefix.$prefix.$param['formModel']);
             }
             // 表单关系没有新增有更新
             $result = $fromModel->saveField($table_id,$data);
@@ -43,6 +52,35 @@ class Index
              $this->apiError($exception->getMessage(),$exception->getCode());
         }
          $this->apiSuccess();
+    }
+
+    /**
+     * @title 获取表单详情
+     * @author hexu
+     * @date 2021/7/23 9:57 上午
+     */
+    public function info(){
+        $db = EasyDb::init();
+        $fromModel = new \Guest\EasyFrom\FromSet();
+        $table_id = $_GET['id'] ?? null;
+        if (empty($table_id)){
+            $this->apiError('id不能为空',400);
+        }
+        $res = $fromModel->tableInfo($table_id);
+        if(empty($res)){
+            $this->apiError('资源不存在',404);
+        }else{
+            $result = json_decode($res['config'],true);
+            $result['table_id'] = (int)$res['id'];
+            // 表单ID对应
+            foreach ($result['fields'] as &$temp){
+                $fieldNode = $fromModel->getField($table_id, $temp['__vModel__']);
+                if (empty($fieldNode))continue;
+                $temp['id'] = $fieldNode['id'];
+            }
+            $this->apiSuccess('请求成功',200,$result);
+
+        }
     }
 
     /**
@@ -60,7 +98,7 @@ class Index
         foreach ($param['fields'] as $item){
             $node = array(
                 'name'=>$item['__vModel__'],
-                'type'=>$item['types'],
+                'type'=>$item['type_node'],
                 'desc'=>$item['__config__']['label']
             );
             if(!empty($item['id']))$node['id'] = $item['id'];

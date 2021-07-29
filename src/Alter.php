@@ -14,8 +14,6 @@ use phpDocumentor\Reflection\Types\False_;
 
 class Alter
 {
-    public $prefix = '';
-
     /**
      * @title 创建表
      * @param $table_name
@@ -28,7 +26,6 @@ class Alter
      */
     public function creatTable($table_name,$comment,$charset='utf8mb4',$increment='999'){
         //TODO
-        $table_name = $this->prefix.$table_name;
         $sql =           <<<here
                 CREATE TABLE `$table_name` (
                     `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
@@ -166,6 +163,23 @@ here;
     {
         $sql = "
            ALTER TABLE {$tableName} DROP  {$name}
+        ";
+        $db = EasyDb::init();
+        return $db->execSql($sql);
+    }
+
+    /**
+     * @title 修改表名
+     * @param $oldTableName
+     * @param $tableName
+     * @return bool
+     * @author hexu
+     * @date 2021/7/23 2:01 下午
+     */
+    public function renameTable($oldTableName, $tableName): bool
+    {
+        $sql = "
+           RENAME TABLE {$oldTableName} to  {$tableName}
         ";
         $db = EasyDb::init();
         return $db->execSql($sql);
