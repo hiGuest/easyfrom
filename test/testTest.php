@@ -4,7 +4,6 @@
  *
  * 功能介绍
  * @author   hexu
- * @date xxx
  */
 
 use PHPUnit\Framework\TestCase;

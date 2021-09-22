@@ -8,7 +8,7 @@
  *
  */
 
-namespace Guest\EasyFrom;
+namespace Guest\EasyForm;
 
 class FieldType {
 

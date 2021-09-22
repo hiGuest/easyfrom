@@ -4,31 +4,33 @@
  *
  * 功能介绍 显示大小
  * @author   hexu
- * @date 2021/7/20 10:55 下午
  */
 namespace Controller;
-use Guest\EasyFrom\EasyDb;
+use Guest\EasyCom\db\EasyDb;
 use mysql_xdevapi\Exception;
 
 class Index
 {
+    public function __construct()
+    {
+        $this->db = EasyDb::init();
+    }
+
     /**
      * @title 保存数据
      * @author hexu
-     * @date 2021/7/22 2:32 下午
      */
     public function save(){
         $param = $this->getParam();
         try{
-            $db = EasyDb::init();
             $data = $this->verifyParam($param);
             // 创建表
-            $fromModel = new \Guest\EasyFrom\FromSet();
+            $fromModel = new \Guest\EasyForm\FormSet();
             $prefix = 'ext_';
             if(empty($param['table_id'])){
                 $res = $fromModel->creatTables($prefix.$param['formModel'], $param['formRef'], $param);
                 if(!$res)throw new \Exception('表单创建失败','10000');
-                $table_id = $db->getLastId();
+                $table_id = $this->db->getLastId();
             }else{
                 $table_id = $param['table_id'];
                 //TODO 强制类型转换会可能出现报错，此处预检查
@@ -57,11 +59,9 @@ class Index
     /**
      * @title 获取表单详情
      * @author hexu
-     * @date 2021/7/23 9:57 上午
      */
     public function info(){
-        $db = EasyDb::init();
-        $fromModel = new \Guest\EasyFrom\FromSet();
+        $fromModel = new \Guest\EasyForm\FormSet();
         $table_id = $_GET['id'] ?? null;
         if (empty($table_id)){
             $this->apiError('id不能为空',400);
@@ -89,7 +89,6 @@ class Index
      * @return array
      * @throws \Exception
      * @author hexu
-     * @date 2021/7/22 5:45 下午
      */
     private function verifyParam($param){
         if(empty($param['formRef']))throw new \Exception('表单名称不能为空','10000');
@@ -133,7 +132,6 @@ class Index
      * @title 获取参数
      * @return mixed
      * @author hexu
-     * @date 2021/7/22 2:24 下午
      */
     public function getParam(){
         $data = file_get_contents("PHP://input");
