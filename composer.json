@@ -8,8 +8,7 @@
     ],
     "autoload": {
       "psr-4": {
-        "Guest\\EasyForm\\": "src/",
-        "Guest\\EasyCom\\": "easycom/src/"
+        "Guest\\EasyForm\\": "src/"
       }
     },
     "require": {},
